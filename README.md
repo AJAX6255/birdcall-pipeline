@@ -70,28 +70,27 @@ Copy code
 
 ## Repository structure
 
-birdcall-pipeline/
+birdcall_pipeline/
+├── data/
+│   ├── raw_mp3/
+│   ├── annotations_json/
+│   ├── wav_full/
+│   └── clips/
 ├── preprocessing/
-│ ├── audio_io.py # load, resample, normalize
-│ ├── padding.py # reflect padding utilities
-│ └── windowing.py # event-centered clip generation
-│
+│   ├── audio_io.py
+│   ├── windowing.py
+│   └── padding.py
 ├── features/
-│ ├── spectrograms.py # rectangular log-mel features
-│ └── augmentations.py # SpecAugment
-│
+│   ├── spectrograms.py
+│   └── augmentations.py
 ├── models/
-│ ├── embeddings.py # YAMNet-style embeddings baseline
-│ └── cnn.py # rectangular-spectrogram CNN
-│
+│   ├── cnn.py
+│   └── embeddings.py
 ├── training/
-│ ├── dataset.py # grouped splits, datasets
-│ ├── train.py # training loops
-│ └── evaluate.py # window + file-level evaluation
-│
-├── config.yaml # centralized parameters
-├── requirements.txt
-└── README.md
+│   ├── dataset.py
+│   ├── train.py
+│   └── evaluate.py
+└── notebook.ipynb
 
 yaml
 Copy code
