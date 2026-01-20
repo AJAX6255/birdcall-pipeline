@@ -5,7 +5,10 @@ from typing import List, Tuple
 import numpy as np
 
 def sliding_windows(audio: np.ndarray, sr: int, window_s: float, hop_s: float) -> List[np.ndarray]:
-    """Yield overlapping windows from a waveform."""
+    """Yield overlapping windows from a waveform.
+
+    Returns list of 1D numpy arrays each of length int(window_s * sr).
+    """
     window_len = int(window_s * sr)
     hop_len = int(hop_s * sr)
     if window_len <= 0 or hop_len <= 0:
@@ -18,13 +21,19 @@ def sliding_windows(audio: np.ndarray, sr: int, window_s: float, hop_s: float) -
 def detect_activity(audio: np.ndarray, sr: int, frame_s: float = 0.02, threshold: float = 1e-4) -> List[Tuple[float, float]]:
     """A naive energy-based activity detector.
 
-    Returns a list of (start_s, end_s) segments.
+    Returns a list of (start_s, end_s) segments where frames exceed threshold.
     """
     frame_len = int(frame_s * sr)
-    hop = frame_len
-    if frame_len == 0:
+    if frame_len <= 0:
         return []
-    energy = [float((audio[i:i + frame_len] ** 2).mean()) for i in range(0, len(audio), hop)]
+    hop = frame_len
+    energy = []
+    for i in range(0, len(audio), hop):
+        frame = audio[i:i + frame_len]
+        if frame.size == 0:
+            energy.append(0.0)
+        else:
+            energy.append(float((frame ** 2).mean()))
     active = [e > threshold for e in energy]
     segments = []
     start_idx = None
