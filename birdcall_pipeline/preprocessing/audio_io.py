@@ -1,5 +1,5 @@
 """
-Lightweight audio I/O utilities.
+Audio I/O utilities: load, save, convert and resample.
 """
 import os
 from typing import Tuple
@@ -8,37 +8,31 @@ import soundfile as sf
 import librosa
 
 def load_audio(path: str, sr: int = 32000, mono: bool = True) -> Tuple[np.ndarray, int]:
-    """Load an audio file and return waveform and sample rate.
+    """Load an audio file and return waveform (float32) and sample rate.
 
-    Uses soundfile for reading where possible, falls back to librosa.
+    Tries soundfile first (preserves sample rate), falls back to librosa.
     """
     try:
-        audio, orig_sr = sf.read(path, always_2d=False)
-        if audio.ndim > 1 and mono:
-            audio = np.mean(audio, axis=1)
+        data, orig_sr = sf.read(path, always_2d=False)
+        if data.ndim > 1 and mono:
+            data = np.mean(data, axis=1)
         if orig_sr != sr:
-            audio = librosa.resample(audio.astype(float), orig_sr, sr)
-        return audio.astype(float), sr
+            data = librosa.resample(data.astype(np.float32), orig_sr, sr)
+        return data.astype(np.float32), sr
     except Exception:
-        audio, orig_sr = librosa.load(path, sr=sr, mono=mono)
-        return audio.astype(float), sr
+        data, _ = librosa.load(path, sr=sr, mono=mono)
+        return data.astype(np.float32), sr
 
-def save_audio(path: str, audio: np.ndarray, sr: int = 32000) -> None:
-    """Save waveform to file (WAV).
-    """
+def save_audio(path: str, audio: np.ndarray, sr: int = 32000, subtype: str = 'PCM_16') -> None:
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    sf.write(path, audio, sr)
+    sf.write(path, audio, sr, subtype=subtype)
 
 def convert_mp3_to_wav(src: str, dst: str, sr: int = 32000) -> None:
-    """Convert mp3 (or other readable formats) to WAV at target sample rate.
-
-    This implementation uses librosa to load and soundfile to write.
-    """
+    """Load src at sr and write a WAV file to dst."""
     audio, _ = load_audio(src, sr=sr, mono=True)
     save_audio(dst, audio, sr)
 
 def resample(audio: np.ndarray, orig_sr: int, target_sr: int) -> np.ndarray:
-    """Resample audio to target sample rate."""
     if orig_sr == target_sr:
         return audio
-    return librosa.resample(audio.astype(float), orig_sr, target_sr)
+    return librosa.resample(audio.astype(np.float32), orig_sr, target_sr)
